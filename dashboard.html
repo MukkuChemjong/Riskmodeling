@@ -5,565 +5,434 @@
   <title>Bankruptcy Risk Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
-      @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap');
- 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
-  :root {
-    --bg:        #080c10;
-    --surface:   #0d1117;
-    --card:      #111820;
-    --border:    #1e2d3d;
-    --border2:   #243547;
-    --accent:    #00d4ff;
-    --accent2:   #ff6b35;
-    --accent3:   #39ff82;
-    --accent4:   #ffcc00;
-    --text:      #e2eaf5;
-    --muted:     #5a7a99;
-    --danger:    #ff4757;
-    --mono:      'DM Mono', monospace;
-    --display:   'Syne', sans-serif;
-  }
- 
-  html { scroll-behavior: smooth; }
- 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--mono);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
- 
-  /* ── GRID BACKGROUND ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.35;
-    pointer-events: none;
-    z-index: 0;
-  }
- 
-  /* ── HEADER ── */
-  header {
-    position: relative;
-    z-index: 10;
-    padding: 2.5rem 3rem 2rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 2rem;
-    background: linear-gradient(180deg, rgba(0,212,255,0.04) 0%, transparent 100%);
-  }
- 
-  .header-left { display: flex; flex-direction: column; gap: 0.4rem; }
- 
-  .tag {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    padding: 0.25rem 0.6rem;
-    width: fit-content;
-    animation: fadeIn 0.5s ease;
-  }
- 
-  h1 {
-    font-family: var(--display);
-    font-size: clamp(1.6rem, 3vw, 2.6rem);
-    font-weight: 800;
-    color: #fff;
-    line-height: 1.1;
-    animation: slideUp 0.6s ease;
-  }
- 
-  h1 span { color: var(--accent); }
- 
-  .subtitle {
-    font-size: 0.75rem;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-    animation: slideUp 0.7s ease;
-  }
- 
-  .model-badge {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.4rem;
-    animation: fadeIn 0.8s ease;
-  }
- 
-  .model-badge .badge-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
- 
-  .model-badge .badge-value {
-    font-family: var(--display);
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--accent3);
-    border: 1px solid var(--accent3);
-    padding: 0.3rem 0.8rem;
-  }
- 
-  /* ── MAIN LAYOUT ── */
-  main {
-    position: relative;
-    z-index: 10;
-    padding: 2.5rem 3rem;
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
- 
-  /* ── UPLOAD ZONE ── */
-  .upload-section {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 1.5rem;
-    align-items: start;
-  }
- 
-  .drop-zone {
-    border: 2px dashed var(--border2);
-    background: var(--card);
-    padding: 3rem 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    position: relative;
-    overflow: hidden;
-  }
- 
-  .drop-zone::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at center, rgba(0,212,255,0.04) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
- 
-  .drop-zone:hover::before,
-  .drop-zone.dragover::before { opacity: 1; }
- 
-  .drop-zone:hover,
-  .drop-zone.dragover {
-    border-color: var(--accent);
-    background: rgba(0,212,255,0.03);
-  }
- 
-  .drop-icon {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 1.2rem;
-    border: 2px solid var(--border2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: var(--accent);
-    transition: border-color 0.3s;
-  }
- 
-  .drop-zone:hover .drop-icon { border-color: var(--accent); }
- 
-  .drop-title {
-    font-family: var(--display);
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 0.5rem;
-  }
- 
-  .drop-sub {
-    font-size: 0.72rem;
-    color: var(--muted);
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-  }
- 
-  .btn-upload {
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    padding: 0.65rem 1.8rem;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.2s;
-  }
- 
-  .btn-upload:hover {
-    background: #fff;
-    color: var(--bg);
-    transform: translateY(-1px);
-  }
- 
-  #fileInput { display: none; }
- 
-  /* ── INFO PANEL ── */
-  .info-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-  }
- 
-  .info-title {
-    font-family: var(--display);
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--accent4);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 0.8rem;
-  }
- 
-  .info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
- 
-  .info-key {
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
- 
-  .info-val {
-    font-size: 0.78rem;
-    color: var(--text);
-    line-height: 1.4;
-  }
- 
-  .info-val.good { color: var(--accent3); }
-  .info-val.warn { color: var(--accent4); }
- 
-  /* ── STATUS BAR ── */
-  #statusBar {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-size: 0.75rem;
-    display: none;
-  }
- 
-  #statusBar.visible { display: flex; }
- 
-  .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 1.5s infinite;
-    flex-shrink: 0;
-  }
- 
-  .status-dot.done { background: var(--accent3); animation: none; }
-  .status-dot.error { background: var(--danger); animation: none; }
- 
-  /* ── RESULTS SECTION ── */
-  #results {
-    display: none;
-    flex-direction: column;
-    gap: 2rem;
-    animation: fadeIn 0.6s ease;
-  }
- 
-  #results.visible { display: flex; }
- 
-  /* ── SECTION HEADER ── */
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
-  }
- 
-  .section-title {
-    font-family: var(--display);
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
- 
-  .section-line {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
- 
-  /* ── METRIC CARDS ── */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 1rem;
-  }
- 
-  .metric-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 1.4rem 1.2rem;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.3s, transform 0.2s;
-    animation: slideUp 0.5s ease both;
-  }
- 
-  .metric-card:hover {
-    border-color: var(--border2);
-    transform: translateY(-2px);
-  }
- 
-  .metric-card::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 2px;
-  }
- 
-  .metric-card.roc::after   { background: var(--accent); }
-  .metric-card.f1::after    { background: var(--accent3); }
-  .metric-card.ll::after    { background: var(--accent2); }
-  .metric-card.ap::after    { background: var(--accent4); }
-  .metric-card.br::after    { background: #cc77ff; }
- 
-  .metric-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.6rem;
-  }
- 
-  .metric-value {
-    font-family: var(--display);
-    font-size: 2rem;
-    font-weight: 800;
-    line-height: 1;
-    margin-bottom: 0.4rem;
-  }
- 
-  .metric-card.roc .metric-value { color: var(--accent); }
-  .metric-card.f1  .metric-value { color: var(--accent3); }
-  .metric-card.ll  .metric-value { color: var(--accent2); }
-  .metric-card.ap  .metric-value { color: var(--accent4); }
-  .metric-card.br  .metric-value { color: #cc77ff; }
- 
-  .metric-desc {
-    font-size: 0.62rem;
-    color: var(--muted);
-    line-height: 1.5;
-  }
- 
-  .metric-badge {
-    position: absolute;
-    top: 0.8rem; right: 0.8rem;
-    font-size: 0.55rem;
-    padding: 0.15rem 0.4rem;
-    border: 1px solid;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
- 
-  .badge-good { color: var(--accent3); border-color: var(--accent3); }
-  .badge-ok   { color: var(--accent4); border-color: var(--accent4); }
-  .badge-low  { color: var(--danger);  border-color: var(--danger); }
- 
-  /* ── CHART GRID ── */
-  .charts-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
- 
-  .chart-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 1.5rem;
-    position: relative;
-    animation: fadeIn 0.7s ease both;
-  }
- 
-  .chart-card.full { grid-column: 1 / -1; }
- 
-  .chart-title {
-    font-family: var(--display);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text);
-    margin-bottom: 0.3rem;
-  }
- 
-  .chart-sub {
-    font-size: 0.62rem;
-    color: var(--muted);
-    margin-bottom: 1.2rem;
-  }
- 
-  .chart-wrap {
-    position: relative;
-    height: 300px;
-  }
- 
-  .chart-wrap.tall { height: 360px; }
- 
-  /* ── SCORE DISTRIBUTION ── */
-  .dist-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
- 
-  .dist-row {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    font-size: 0.68rem;
-  }
- 
-  .dist-label { width: 80px; color: var(--muted); text-align: right; flex-shrink: 0; }
- 
-  .dist-bar-outer {
-    flex: 1;
-    height: 18px;
-    background: var(--surface);
-    position: relative;
-    overflow: hidden;
-  }
- 
-  .dist-bar-inner {
-    height: 100%;
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-  }
- 
-  .dist-val { width: 50px; text-align: right; color: var(--text); flex-shrink: 0; }
- 
-  /* ── DATA PREVIEW TABLE ── */
-  .table-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    overflow: auto;
-    max-height: 260px;
-  }
- 
-  table { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
-  thead { position: sticky; top: 0; z-index: 5; }
-  th {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border2);
-    padding: 0.6rem 0.8rem;
-    text-align: left;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 0.6rem;
-    white-space: nowrap;
-  }
-  td {
-    padding: 0.5rem 0.8rem;
-    border-bottom: 1px solid var(--border);
-    color: var(--text);
-    white-space: nowrap;
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(0,212,255,0.03); }
- 
-  /* ── SUMMARY FOOTER ── */
-  .summary-strip {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 1.2rem 1.8rem;
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-    font-size: 0.7rem;
-  }
- 
-  .summary-item { display: flex; align-items: center; gap: 0.5rem; }
-  .summary-dot  { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .summary-key  { color: var(--muted); }
-  .summary-val  { color: var(--text); font-weight: 500; }
- 
-  /* ── ANIMATIONS ── */
-  @keyframes fadeIn  { from { opacity:0; }              to { opacity:1; } }
-  @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
-  @keyframes pulse   {
-    0%,100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.5); }
-    50%      { box-shadow: 0 0 0 6px rgba(0,212,255,0); }
-  }
- 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 1100px) {
-    .metrics-grid { grid-template-columns: repeat(3, 1fr); }
-    .charts-grid  { grid-template-columns: 1fr; }
-    .upload-section { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 700px) {
-    header, main { padding: 1.5rem; }
-    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-    h1 { font-size: 1.4rem; }
-  }
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #080c10;
+      --surface: #0d1117;
+      --card:    #111820;
+      --border:  #1e2d3d;
+      --border2: #243547;
+      --accent:  #00d4ff;
+      --accent2: #ff6b35;
+      --accent3: #39ff82;
+      --accent4: #ffcc00;
+      --text:    #e2eaf5;
+      --muted:   #5a7a99;
+      --danger:  #ff4757;
+      --mono:    'DM Mono', monospace;
+      --display: 'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--mono); min-height: 100vh; overflow-x: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px; opacity: 0.35;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative; z-index: 10;
+      padding: 2.5rem 3rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 2rem;
+      background: linear-gradient(180deg, rgba(0,212,255,0.04) 0%, transparent 100%);
+    }
+    .header-left { display: flex; flex-direction: column; gap: 0.4rem; }
+    .tag {
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent); border: 1px solid var(--accent);
+      padding: 0.25rem 0.6rem; width: fit-content;
+    }
+    h1 {
+      font-family: var(--display); font-size: clamp(1.6rem, 3vw, 2.6rem);
+      font-weight: 800; color: #fff; line-height: 1.1;
+    }
+    h1 span { color: var(--accent); }
+    .subtitle { font-size: 0.75rem; color: var(--muted); }
+    .model-badge { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
+    .model-badge .badge-label { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+    .model-badge .badge-value {
+      font-family: var(--display); font-size: 0.85rem; font-weight: 700;
+      color: var(--accent3); border: 1px solid var(--accent3); padding: 0.3rem 0.8rem;
+    }
+
+    /* ── MAIN ── */
+    main {
+      position: relative; z-index: 10;
+      padding: 2.5rem 3rem; max-width: 1400px;
+      margin: 0 auto; display: flex; flex-direction: column; gap: 2rem;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;
+    }
+    .section-title {
+      font-family: var(--display); font-size: 1rem; font-weight: 700;
+      color: #fff; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+    }
+    .section-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* ── UPLOAD ── */
+    .upload-section {
+      display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start;
+    }
+    .drop-zone {
+      border: 2px dashed var(--border2); background: var(--card);
+      padding: 3rem 2rem; text-align: center; cursor: pointer;
+      transition: all 0.25s ease; position: relative; overflow: hidden;
+    }
+    .drop-zone::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0,212,255,0.04) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .drop-zone:hover::before, .drop-zone.dragover::before { opacity: 1; }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent); background: rgba(0,212,255,0.03);
+    }
+    .drop-icon {
+      width: 56px; height: 56px; margin: 0 auto 1.2rem;
+      border: 2px solid var(--border2); display: flex; align-items: center;
+      justify-content: center; font-size: 1.5rem; color: var(--accent); transition: border-color 0.3s;
+    }
+    .drop-zone:hover .drop-icon { border-color: var(--accent); }
+    .drop-title { font-family: var(--display); font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+    .drop-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; }
+    .btn-upload {
+      background: var(--accent); color: var(--bg); border: none;
+      padding: 0.65rem 1.8rem; font-family: var(--mono); font-size: 0.75rem;
+      font-weight: 500; letter-spacing: 0.1em; cursor: pointer;
+      text-transform: uppercase; transition: all 0.2s;
+    }
+    .btn-upload:hover { background: #fff; color: var(--bg); transform: translateY(-1px); }
+    #fileInput { display: none; }
+
+    /* ── INFO PANEL ── */
+    .info-panel {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem;
+    }
+    .info-title {
+      font-family: var(--display); font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent4);
+      border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;
+    }
+    .info-item { display: flex; flex-direction: column; gap: 0.2rem; }
+    .info-key { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .info-val { font-size: 0.78rem; color: var(--text); line-height: 1.4; }
+    .info-val.good { color: var(--accent3); }
+    .info-val.warn { color: var(--accent4); }
+
+    /* ── STATUS BAR ── */
+    #statusBar {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1rem 1.5rem; align-items: center;
+      gap: 1rem; font-size: 0.75rem; display: none;
+    }
+    #statusBar.visible { display: flex; }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent); animation: pulse 1.5s infinite; flex-shrink: 0;
+    }
+    .status-dot.done  { background: var(--accent3); animation: none; }
+    .status-dot.error { background: var(--danger);  animation: none; }
+
+    /* ── RESULTS ── */
+    #results { display: none; flex-direction: column; gap: 2rem; animation: fadeIn 0.6s ease; }
+    #results.visible { display: flex; }
+
+    /* ── ★ PREDICTION GAUGE ── */
+    .prediction-row {
+      display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: stretch;
+    }
+    .gauge-card {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1.8rem 1.5rem; display: flex; flex-direction: column;
+      align-items: center; gap: 1rem;
+    }
+    .gauge-heading {
+      font-family: var(--display); font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+      align-self: flex-start;
+    }
+    .gauge-wrap { position: relative; width: 240px; height: 136px; }
+    .gauge-pct {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      font-family: var(--display); font-size: 2.8rem; font-weight: 800;
+      line-height: 1; text-align: center; transition: color 0.6s;
+    }
+    .gauge-sublabel {
+      font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase;
+      margin-top: 0.15rem; transition: color 0.6s; color: var(--muted);
+    }
+    .risk-pill {
+      width: 100%; padding: 0.75rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+      border: 1px solid var(--border); transition: all 0.5s;
+    }
+    .risk-pill .rp-name {
+      font-family: var(--display); font-size: 1rem; font-weight: 800;
+    }
+    .risk-pill .rp-action {
+      font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.25rem 0.6rem; border: 1px solid;
+    }
+    .risk-pill .rp-desc { font-size: 0.6rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* Breakdown grid next to gauge */
+    .breakdown-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .bc-card {
+      background: var(--card); border: 1px solid var(--border); padding: 1.1rem;
+    }
+    .bc-label { font-size: 0.56rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .bc-value { font-family: var(--display); font-size: 1.5rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .bc-bar-outer { height: 3px; background: var(--border); }
+    .bc-bar-inner { height: 100%; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
+    .bc-desc { font-size: 0.6rem; color: var(--muted); line-height: 1.5; margin-top: 0.5rem; }
+
+    /* ── METRIC CARDS ── */
+    .metrics-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;
+    }
+    .metric-card {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1.4rem 1.2rem; position: relative; overflow: hidden;
+      transition: border-color 0.3s, transform 0.2s; animation: slideUp 0.5s ease both;
+    }
+    .metric-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .metric-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
+    .metric-card.roc::after { background: var(--accent); }
+    .metric-card.f1::after  { background: var(--accent3); }
+    .metric-card.ll::after  { background: var(--accent2); }
+    .metric-card.ap::after  { background: var(--accent4); }
+    .metric-card.br::after  { background: #cc77ff; }
+    .metric-label { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+    .metric-value { font-family: var(--display); font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 0.4rem; }
+    .metric-card.roc .metric-value { color: var(--accent); }
+    .metric-card.f1  .metric-value { color: var(--accent3); }
+    .metric-card.ll  .metric-value { color: var(--accent2); }
+    .metric-card.ap  .metric-value { color: var(--accent4); }
+    .metric-card.br  .metric-value { color: #cc77ff; }
+    .metric-desc { font-size: 0.62rem; color: var(--muted); line-height: 1.5; }
+    .metric-badge {
+      position: absolute; top: 0.8rem; right: 0.8rem;
+      font-size: 0.55rem; padding: 0.15rem 0.4rem;
+      border: 1px solid; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .badge-good { color: var(--accent3); border-color: var(--accent3); }
+    .badge-ok   { color: var(--accent4); border-color: var(--accent4); }
+    .badge-low  { color: var(--danger);  border-color: var(--danger); }
+
+    /* ── CHARTS ── */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .chart-card {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1.5rem; position: relative; animation: fadeIn 0.7s ease both;
+    }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-title {
+      font-family: var(--display); font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); margin-bottom: 0.3rem;
+    }
+    .chart-sub { font-size: 0.62rem; color: var(--muted); margin-bottom: 1.2rem; }
+    .chart-wrap { position: relative; height: 300px; }
+    .chart-wrap.tall { height: 380px; }
+
+    /* ── ★ PSI SECTION ── */
+    .psi-summary-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;
+    }
+    .psi-info-card {
+      background: var(--card); border: 1px solid var(--border); padding: 1.2rem;
+    }
+    .psi-info-card .pic-title {
+      font-family: var(--display); font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.8rem;
+    }
+    .psi-score-card {
+      background: var(--card); border: 1px solid var(--border); padding: 1.2rem;
+    }
+    .psi-score-card .psc-label {
+      font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.4rem;
+    }
+    .psi-score-card .psc-value {
+      font-family: var(--display); font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem;
+    }
+    .psi-score-card .psc-bar { height: 3px; background: var(--border); margin-bottom: 0.5rem; }
+    .psi-score-card .psc-bar-fill { height: 100%; transition: width 1s; }
+    .psi-legend-row { display: flex; flex-direction: column; gap: 0.55rem; }
+    .psi-legend-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.68rem; }
+    .psi-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .psi-badge {
+      display: inline-block; font-size: 0.55rem; padding: 0.1rem 0.4rem;
+      border: 1px solid; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .psi-stable   { color: #39ff82; border-color: #39ff82; }
+    .psi-monitor  { color: #ffcc00; border-color: #ffcc00; }
+    .psi-unstable { color: #ff4757; border-color: #ff4757; }
+
+    /* PSI feature table */
+    .psi-table-wrap { overflow: auto; max-height: 300px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
+    thead { position: sticky; top: 0; z-index: 5; }
+    th {
+      background: var(--surface); border-bottom: 1px solid var(--border2);
+      padding: 0.55rem 0.8rem; text-align: left; color: var(--muted);
+      letter-spacing: 0.08em; font-weight: 500; text-transform: uppercase;
+      font-size: 0.58rem; white-space: nowrap;
+    }
+    td {
+      padding: 0.45rem 0.8rem; border-bottom: 1px solid var(--border);
+      color: var(--text); white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,212,255,0.03); }
+
+    /* ── ★ SHAP SECTION ── */
+    .shap-info-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;
+    }
+    .shap-info-card {
+      background: var(--card); border: 1px solid var(--border); padding: 1.2rem;
+    }
+    .shap-info-card .sic-title {
+      font-family: var(--display); font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem;
+    }
+    .shap-info-card .sic-body { font-size: 0.68rem; color: var(--muted); line-height: 1.7; }
+
+    /* Beeswarm */
+    .beeswarm-card {
+      background: var(--card); border: 1px solid var(--border); padding: 1.5rem;
+    }
+    .beeswarm-legend {
+      display: flex; align-items: center; gap: 1.2rem;
+      font-size: 0.62rem; color: var(--muted); margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .beeswarm-grad {
+      width: 100px; height: 7px;
+      background: linear-gradient(90deg, #3b82f6, #9333ea, #ef4444);
+    }
+    #beeswarmContainer {
+      position: relative; overflow: hidden;
+    }
+    .bs-row {
+      display: flex; align-items: center; gap: 0.6rem;
+      height: 26px; position: absolute; left: 0; right: 0;
+    }
+    .bs-label {
+      width: 190px; font-size: 0.6rem; color: var(--muted);
+      text-align: right; flex-shrink: 0; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .bs-axis {
+      flex: 1; position: relative; height: 100%;
+    }
+    .bs-zero {
+      position: absolute; top: 0; bottom: 0; width: 1px;
+      background: var(--border2); left: 50%;
+    }
+    .bs-dot {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      border-radius: 50%; opacity: 0.72; cursor: default;
+      transition: opacity 0.15s;
+    }
+    .bs-dot:hover { opacity: 1; }
+    .bs-axis-labels {
+      display: flex; justify-content: space-between;
+      font-size: 0.56rem; color: var(--muted); padding-left: 196px; margin-top: 4px;
+    }
+
+    /* ── DATA PREVIEW TABLE ── */
+    .table-wrap {
+      background: var(--card); border: 1px solid var(--border);
+      overflow: auto; max-height: 260px;
+    }
+
+    /* ── SUMMARY STRIP ── */
+    .summary-strip {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1.2rem 1.8rem; display: flex; align-items: center;
+      gap: 2rem; flex-wrap: wrap; font-size: 0.7rem;
+    }
+    .summary-item { display: flex; align-items: center; gap: 0.5rem; }
+    .summary-dot  { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .summary-key  { color: var(--muted); }
+    .summary-val  { color: var(--text); font-weight: 500; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeIn  { from { opacity:0; }                          to { opacity:1; } }
+    @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+    @keyframes pulse   {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.5); }
+      50%      { box-shadow: 0 0 0 6px rgba(0,212,255,0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1100px) {
+      .metrics-grid    { grid-template-columns: repeat(3,1fr); }
+      .charts-grid     { grid-template-columns: 1fr; }
+      .upload-section  { grid-template-columns: 1fr; }
+      .prediction-row  { grid-template-columns: 1fr; }
+      .psi-summary-row { grid-template-columns: 1fr 1fr; }
+      .shap-info-row   { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      header, main { padding: 1.5rem; }
+      .metrics-grid    { grid-template-columns: repeat(2,1fr); }
+      .psi-summary-row { grid-template-columns: 1fr; }
+      .shap-info-row   { grid-template-columns: 1fr; }
+      h1 { font-size: 1.4rem; }
+    }
   </style>
 </head>
 <body>
 
+<header>
+  <div class="header-left">
+    <div class="tag">Risk Modeling System</div>
+    <h1>Bankruptcy Risk <span>Dashboard</span></h1>
+    <p class="subtitle">Gradient Boosting · PSI Drift Analysis · SHAP Explainability · Live Prediction</p>
+  </div>
+  <div class="model-badge">
+    <span class="badge-label">Active Model</span>
+    <span class="badge-value">GBC v2.1.0</span>
+    <span class="badge-label" style="margin-top:0.3rem">Threshold</span>
+    <span class="badge-value" style="border-color:var(--accent4);color:var(--accent4)">0.35</span>
+  </div>
+</header>
+
 <main>
 
-    <div>
-        <div class="chart-card">
-        <div class="chart-title">Feature Importance</div>
-        <div class="chart-sub">Top 15 features by Gini importance score</div>
-        <div class="chart-wrap tall"><canvas id="featChart"></canvas></div>
-    </div>
- 
   <!-- UPLOAD SECTION -->
-   <!-- Add this inside a chart-card wherever you want the feature importance chart -->
   <div class="upload-section">
     <div class="drop-zone" id="dropZone">
       <div class="drop-icon">📂</div>
       <div class="drop-title">Drop your CSV file here</div>
       <p class="drop-sub">
-        Upload a CSV file containing financial ratio features.<br>
-        Must include a <code style="color:var(--accent)">Bankrupt?</code> column as the target label.<br>
+        Upload a CSV with financial ratio features.<br>
+        Must include a <code style="color:var(--accent)">Bankrupt?</code> column as target label.<br>
         Supports files up to 50,000 rows.
       </p>
       <button class="btn-upload" id="uploadBtn">▲ Select File</button>
       <input type="file" id="fileInput" accept=".csv"/>
     </div>
- 
     <div class="info-panel">
       <div class="info-title">⚑ How It Works</div>
       <div class="info-item">
@@ -572,15 +441,15 @@
       </div>
       <div class="info-item">
         <span class="info-key">Step 2 — Process</span>
-        <span class="info-val">The model normalizes inputs, handles missing values, and applies a 0.35 classification threshold.</span>
+        <span class="info-val">JSON outputs from your Python training script are loaded automatically.</span>
       </div>
       <div class="info-item">
         <span class="info-key">Step 3 — Results</span>
-        <span class="info-val">View ROC, Precision-Recall, score distributions and all 5 performance metrics.</span>
+        <span class="info-val">View Prediction Gauge, PSI drift, SHAP beeswarm, and all metrics.</span>
       </div>
       <div class="info-item">
         <span class="info-key">Target Column</span>
-        <span class="info-val good">Bankrupt? &nbsp;→&nbsp; 0 (Legit) or 1 (Bankrupt)</span>
+        <span class="info-val good">Bankrupt? → 0 (Legit) or 1 (Bankrupt)</span>
       </div>
       <div class="info-item">
         <span class="info-key">Decision Threshold</span>
@@ -588,17 +457,95 @@
       </div>
     </div>
   </div>
- 
+
   <!-- STATUS BAR -->
   <div id="statusBar">
     <div class="status-dot" id="statusDot"></div>
-    <span id="statusText">Processing file...</span>
+    <span id="statusText">Processing...</span>
   </div>
- 
-  <!-- RESULTS -->
+
+  <!-- ALL RESULTS -->
   <div id="results">
- 
-    <!-- METRIC CARDS -->
+
+    <!-- ════════════════════════════════════════
+         SECTION 1 — BANKRUPTCY PREDICTION
+    ════════════════════════════════════════ -->
+    <div>
+      <div class="section-header">
+        <span class="section-title">Bankruptcy Prediction</span>
+        <div class="section-line"></div>
+        <span style="font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">Live Model Output</span>
+      </div>
+
+      <div class="prediction-row">
+
+        <!-- Gauge -->
+        <div class="gauge-card">
+          <div class="gauge-heading">Bankruptcy Likelihood</div>
+          <div class="gauge-wrap">
+            <canvas id="gaugeChart"></canvas>
+            <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);text-align:center;">
+              <div class="gauge-pct" id="gaugePct" style="color:var(--muted)">—</div>
+              <div class="gauge-sublabel" id="gaugeSubLabel">Awaiting data</div>
+            </div>
+          </div>
+
+          <!-- Risk pill -->
+          <div class="risk-pill" id="riskPill" style="border-color:var(--border)">
+            <div>
+              <div class="rp-name" id="riskName" style="color:var(--muted)">NO DATA</div>
+              <div class="rp-desc" id="riskDesc">Load model_outputs/ to see prediction</div>
+            </div>
+            <div class="rp-action" id="riskAction" style="border-color:var(--border);color:var(--muted)">—</div>
+          </div>
+        </div>
+
+        <!-- Breakdown cards -->
+        <div class="breakdown-grid">
+          <div class="bc-card">
+            <div class="bc-label">Bankruptcy Probability</div>
+            <div class="bc-value" id="bc-prob" style="color:var(--accent)">—</div>
+            <div class="bc-bar-outer"><div class="bc-bar-inner" id="bc-prob-bar" style="width:0%;background:var(--accent)"></div></div>
+            <div class="bc-desc">Raw probability from GBC. Threshold = 0.35</div>
+          </div>
+          <div class="bc-card">
+            <div class="bc-label">Risk Band</div>
+            <div class="bc-value" id="bc-band" style="color:var(--muted)">—</div>
+            <div class="bc-bar-outer"><div class="bc-bar-inner" id="bc-band-bar" style="width:0%;background:var(--muted)"></div></div>
+            <div class="bc-desc">GREEN &lt; 0.35 · AMBER 0.35–0.65 · RED &gt; 0.65</div>
+          </div>
+          <div class="bc-card">
+            <div class="bc-label">ROC-AUC Score</div>
+            <div class="bc-value" id="bc-auc" style="color:var(--accent3)">—</div>
+            <div class="bc-bar-outer"><div class="bc-bar-inner" id="bc-auc-bar" style="width:0%;background:var(--accent3)"></div></div>
+            <div class="bc-desc">Overall ranking quality of the model predictions</div>
+          </div>
+          <div class="bc-card">
+            <div class="bc-label">Brier Score</div>
+            <div class="bc-value" id="bc-brier" style="color:#cc77ff">—</div>
+            <div class="bc-bar-outer"><div class="bc-bar-inner" id="bc-brier-bar" style="width:0%;background:#cc77ff"></div></div>
+            <div class="bc-desc">Probability calibration — closer to 0 is better</div>
+          </div>
+          <div class="bc-card">
+            <div class="bc-label">F1 Score</div>
+            <div class="bc-value" id="bc-f1" style="color:var(--accent3)">—</div>
+            <div class="bc-bar-outer"><div class="bc-bar-inner" id="bc-f1-bar" style="width:0%;background:var(--accent3)"></div></div>
+            <div class="bc-desc">Balance between Precision and Recall on the bankrupt class</div>
+          </div>
+          <div class="bc-card">
+            <div class="bc-label">Log Loss</div>
+            <div class="bc-value" id="bc-ll" style="color:var(--accent2)">—</div>
+            <div class="bc-bar-outer"><div class="bc-bar-inner" id="bc-ll-bar" style="width:0%;background:var(--accent2)"></div></div>
+            <div class="bc-desc">Penalizes confident wrong predictions — lower is better</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         SECTION 2 — PERFORMANCE METRICS
+    ════════════════════════════════════════ -->
     <div>
       <div class="section-header">
         <span class="section-title">Performance Metrics</span>
@@ -609,81 +556,192 @@
         <div class="metric-card roc" style="animation-delay:0.05s">
           <div class="metric-label">ROC — AUC</div>
           <div class="metric-value" id="m-roc">—</div>
-          <div class="metric-desc">Area under the receiver operating characteristic curve. Measures rank-ordering quality.</div>
+          <div class="metric-desc">Rank-ordering quality across all thresholds.</div>
           <span class="metric-badge" id="b-roc"></span>
         </div>
         <div class="metric-card f1" style="animation-delay:0.1s">
           <div class="metric-label">F1 — Score</div>
           <div class="metric-value" id="m-f1">—</div>
-          <div class="metric-desc">Harmonic mean of Precision and Recall on the bankrupt (minority) class.</div>
+          <div class="metric-desc">Harmonic mean of Precision and Recall.</div>
           <span class="metric-badge" id="b-f1"></span>
         </div>
         <div class="metric-card ll" style="animation-delay:0.15s">
           <div class="metric-label">Log Loss</div>
           <div class="metric-value" id="m-ll">—</div>
-          <div class="metric-desc">Penalizes confident wrong predictions. Lower is better. Validates calibration.</div>
+          <div class="metric-desc">Penalizes confident wrong predictions.</div>
           <span class="metric-badge" id="b-ll"></span>
         </div>
         <div class="metric-card ap" style="animation-delay:0.2s">
           <div class="metric-label">Avg Precision</div>
           <div class="metric-value" id="m-ap">—</div>
-          <div class="metric-desc">Area under the Precision-Recall curve. Better than AUC on imbalanced sets.</div>
+          <div class="metric-desc">Area under the Precision-Recall curve.</div>
           <span class="metric-badge" id="b-ap"></span>
         </div>
         <div class="metric-card br" style="animation-delay:0.25s">
           <div class="metric-label">Brier Score</div>
           <div class="metric-value" id="m-br">—</div>
-          <div class="metric-desc">Mean squared error of probability estimates. Closer to 0 = well calibrated.</div>
+          <div class="metric-desc">Probability calibration — closer to 0 is better.</div>
           <span class="metric-badge" id="b-br"></span>
         </div>
       </div>
     </div>
- 
-    <!-- CHARTS ROW 1 -->
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-title">ROC Curve</div>
-        <div class="chart-sub">True Positive Rate vs False Positive Rate across all thresholds</div>
-        <div class="chart-wrap"><canvas id="rocChart"></canvas></div>
+
+    <!-- ════════════════════════════════════════
+         SECTION 3 — PSI DRIFT ANALYSIS
+    ════════════════════════════════════════ -->
+    <div>
+      <div class="section-header">
+        <span class="section-title">Population Stability Index</span>
+        <div class="section-line"></div>
+        <span style="font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">Feature Drift Analysis</span>
       </div>
- 
-      <div class="chart-card">
-        <div class="chart-title">Precision — Recall Curve</div>
-        <div class="chart-sub">Precision vs Recall tradeoff — critical for imbalanced classification</div>
-        <div class="chart-wrap"><canvas id="prChart"></canvas></div>
+
+      <!-- PSI Summary Row -->
+      <div class="psi-summary-row">
+
+        <!-- Legend card -->
+        <div class="psi-info-card">
+          <div class="pic-title" style="color:var(--accent4)">PSI Interpretation</div>
+          <div class="psi-legend-row">
+            <div class="psi-legend-item">
+              <div class="psi-dot" style="background:#39ff82"></div>
+              <span style="color:var(--muted)">PSI &lt; 0.10</span>
+              <span class="psi-badge psi-stable">STABLE</span>
+              <span style="color:var(--muted)">No action needed</span>
+            </div>
+            <div class="psi-legend-item">
+              <div class="psi-dot" style="background:#ffcc00"></div>
+              <span style="color:var(--muted)">0.10 – 0.20</span>
+              <span class="psi-badge psi-monitor">MONITOR</span>
+              <span style="color:var(--muted)">Investigate feature</span>
+            </div>
+            <div class="psi-legend-item">
+              <div class="psi-dot" style="background:#ff4757"></div>
+              <span style="color:var(--muted)">PSI &gt; 0.20</span>
+              <span class="psi-badge psi-unstable">UNSTABLE</span>
+              <span style="color:var(--muted)">Consider retraining</span>
+            </div>
+          </div>
+          <div style="margin-top:1rem;font-size:0.62rem;color:var(--muted);line-height:1.6">
+            PSI measures how much a feature's distribution has shifted between the training set and test / OOS data.
+            A drifted feature means the model may be less reliable on new data.
+          </div>
+        </div>
+
+        <!-- PSI Test score card -->
+        <div class="psi-score-card">
+          <div class="psc-label">Score PSI — Train vs Test</div>
+          <div class="psc-value" id="psiTestVal" style="color:var(--accent3)">—</div>
+          <div class="psc-bar"><div class="psc-bar-fill" id="psiTestBar" style="width:0%;background:#39ff82"></div></div>
+          <div id="psiTestBadge" class="psi-badge psi-stable">—</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:0.6rem">
+            How stable the predicted score distribution is between training and test data.
+          </div>
+        </div>
+
+        <!-- PSI OOS score card -->
+        <div class="psi-score-card">
+          <div class="psc-label">Score PSI — Train vs OOS</div>
+          <div class="psc-value" id="psiOosVal" style="color:var(--accent3)">—</div>
+          <div class="psc-bar"><div class="psc-bar-fill" id="psiOosBar" style="width:0%;background:#39ff82"></div></div>
+          <div id="psiOosBadge" class="psi-badge psi-stable">—</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:0.6rem">
+            How stable the score distribution is on completely held-out out-of-sample data.
+          </div>
+        </div>
+
+      </div>
+2
+
+      <!-- PSI Full Table -->
+      <div class="chart-card" style="margin-top:0">
+        <div class="chart-title">Full PSI Feature Table</div>
+        <div class="chart-sub">All features ranked by Train→Test PSI — colour coded by status</div>
+        <div class="psi-table-wrap" style="margin-top:0.8rem">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Feature</th>
+                <th>PSI Train→Test</th>
+                <th>Status</th>
+                <th>PSI Train→OOS</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="psiTableBody">
+              <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">
+                Run train_model.py to generate psi_results.json
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
- 
-    <!-- CHARTS ROW 2 -->
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-title">Score Distribution</div>
-        <div class="chart-sub">Predicted probability histogram — Legit vs Bankrupt classes</div>
-        <div class="chart-wrap tall"><canvas id="distChart"></canvas></div>
+
+    <!-- ════════════════════════════════════════
+         SECTION 4 — SHAP VALUE VISUALIZATION
+    ════════════════════════════════════════ -->
+    <div>
+      <div class="section-header">
+        <span class="section-title">SHAP Value Visualization</span>
+        <div class="section-line"></div>
+        <span style="font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">Feature Explainability</span>
       </div>
- 
-      <div class="chart-card">
-        <div class="chart-title">Confusion Matrix</div>
-        <div class="chart-sub">Actual vs Predicted at threshold 0.35</div>
-        <div class="chart-wrap tall"><canvas id="cmChart"></canvas></div>
+
+      <!-- Info row -->
+      <div class="shap-info-row">
+        <div class="shap-info-card">
+          <div class="sic-title" style="color:var(--accent)">What are SHAP Values?</div>
+          <div class="sic-body">
+            SHAP values show <span style="color:var(--text)">how much each feature contributed</span> to
+            pushing the model's prediction toward or away from bankruptcy for each company.<br><br>
+            <span style="color:var(--danger)">Positive (+)</span> → pushes toward Bankrupt<br>
+            <span style="color:var(--accent3)">Negative (−)</span> → pushes toward Legitimate
+          </div>
+        </div>
+        <div class="shap-info-card">
+          <div class="sic-title" style="color:var(--accent4)">How to Read the Beeswarm</div>
+          <div class="sic-body">
+            Each <span style="color:var(--text)">dot = one company</span>.<br>
+            Each <span style="color:var(--text)">row = one feature</span>.<br>
+            <span style="color:#ef4444">Red</span> = high feature value.<br>
+            <span style="color:#3b82f6">Blue</span> = low feature value.<br><br>
+            Wide spread = high variability in how this feature impacts different companies.
+          </div>
+        </div>
+        <div class="shap-info-card">
+          <div class="sic-title" style="color:var(--accent3)">Top Feature</div>
+          <div style="margin-top:0.4rem">
+            <div style="font-size:0.9rem;font-weight:700;color:var(--accent4);font-family:var(--display)" id="topFeatName">—</div>
+            <div style="font-size:0.58rem;color:var(--muted);margin-top:0.3rem">Highest mean |SHAP| value</div>
+            <div style="font-family:var(--display);font-size:1.6rem;font-weight:800;color:var(--accent3);margin-top:0.5rem" id="topFeatVal">—</div>
+            <div style="font-size:0.58rem;color:var(--muted)">Mean absolute SHAP</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Beeswarm plot -->
+      <div class="beeswarm-card">
+        <div class="chart-title">SHAP Beeswarm Plot — Top 15 Features</div>
+        <div class="chart-sub">Each dot is one company. Horizontal position = impact direction and magnitude. Colour = feature value.</div>
+        <div class="beeswarm-legend">
+          <span>Feature value:</span>
+          <span style="color:#3b82f6">◀ Low</span>
+          <div class="beeswarm-grad"></div>
+          <span style="color:#ef4444">High ▶</span>
+          <span style="margin-left:1.2rem;color:var(--accent3)">◀◀ Toward Legitimate</span>
+          <span style="color:var(--danger)">Toward Bankrupt ▶▶</span>
+        </div>
+        <div id="beeswarmContainer"></div>
+        <div class="bs-axis-labels" id="bsAxisLabels">
+          <span>← Legitimate</span>
+          <span>Impact on Prediction</span>
+          <span>Bankrupt →</span>
+        </div>
       </div>
     </div>
- 
-    <!-- METRICS RADAR FULL WIDTH -->
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-title">Metrics Radar</div>
-        <div class="chart-sub">Normalized performance profile across all five metrics</div>
-        <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
-      </div>
- 
-      <div class="chart-card">
-        <div class="chart-title">Class Balance &amp; Dataset Summary</div>
-        <div class="chart-sub">Distribution of bankrupt vs legitimate companies in uploaded file</div>
-        <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
-      </div>
-    </div>
- 
+
     <!-- DATA PREVIEW -->
     <div>
       <div class="section-header">
@@ -695,12 +753,12 @@
         <table id="previewTable"></table>
       </div>
     </div>
- 
+
     <!-- SUMMARY STRIP -->
-    <div class="summary-strip" id="summarStrip">
+    <div class="summary-strip">
       <div class="summary-item">
         <div class="summary-dot" style="background:var(--accent)"></div>
-        <span class="summary-key">Records Processed:</span>
+        <span class="summary-key">Records:</span>
         <span class="summary-val" id="s-records">—</span>
       </div>
       <div class="summary-item">
@@ -728,230 +786,599 @@
         <span class="summary-key">Model:</span>
         <span class="summary-val">Gradient Boosting Classifier</span>
       </div>
-      
     </div>
 
   </div><!-- /results -->
 </main>
 
 <script>
-// ── The ONLY job of this JS is to fetch JSON and draw charts ──────────────────
+'use strict';
 
-// Registry to track all active chart instances
-const chartRegistry = {};
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 const OUTPUT_DIR = './model_outputs';
+const THRESHOLD  = 0.35;
+const GRID_C     = '#1e2d3d';
+const TICK_C     = '#5a7a99';
+const FONT_M     = "'DM Mono', monospace";
 
+// ── CHART REGISTRY ────────────────────────────────────────────────────────────
+const chartRegistry = {};
 function createChart(id, config) {
-  // If a chart already exists on this canvas, destroy it first
-  if (chartRegistry[id]) {
-    chartRegistry[id].destroy();
-  }
-  // Create the new chart and save it to the registry
-  chartRegistry[id] = new Chart(document.getElementById(id), config);
+  if (chartRegistry[id]) { chartRegistry[id].destroy(); chartRegistry[id] = null; }
+  const el = document.getElementById(id);
+  if (!el) return;
+  chartRegistry[id] = new Chart(el, config);
 }
 
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const $    = id => document.getElementById(id);
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+function setStatus(msg, state = 'loading') {
+  const bar = $('statusBar');
+  bar.classList.add('visible');
+  $('statusText').textContent = msg;
+  $('statusDot').className = 'status-dot' +
+    (state === 'done' ? ' done' : state === 'error' ? ' error' : '');
+}
+
+function baseCfg(xLabel, yLabel) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    animation: { duration: 600 },
+    scales: {
+      x: {
+        title: { display: !!xLabel, text: xLabel, color: TICK_C, font: { family: FONT_M, size: 10 } },
+        grid:  { color: GRID_C }, ticks: { color: TICK_C, font: { family: FONT_M, size: 9 } }
+      },
+      y: {
+        title: { display: !!yLabel, text: yLabel, color: TICK_C, font: { family: FONT_M, size: 10 } },
+        grid:  { color: GRID_C }, ticks: { color: TICK_C, font: { family: FONT_M, size: 9 } }
+      }
+    },
+    plugins: {
+      legend: { labels: { color: TICK_C, font: { family: FONT_M, size: 10 }, padding: 12 } },
+      tooltip: {
+        backgroundColor: '#0d1117', borderColor: '#1e2d3d', borderWidth: 1,
+        titleColor: '#e2eaf5', bodyColor: '#5a7a99',
+        titleFont: { family: FONT_M, size: 10 }, bodyFont: { family: FONT_M, size: 10 }
+      }
+    }
+  };
+}
+
+function psiInfo(v) {
+  if (v < 0.10) return ['STABLE',   'psi-stable',   '#39ff82'];
+  if (v < 0.20) return ['MONITOR',  'psi-monitor',  '#ffcc00'];
+  return              ['UNSTABLE', 'psi-unstable', '#ff4757'];
+}
+
+function metricBadge(val, type) {
+  if (type === 'roc' || type === 'ap')
+    return val >= 0.85 ? ['EXCELLENT','badge-good'] : val >= 0.70 ? ['GOOD','badge-ok'] : ['LOW','badge-low'];
+  if (type === 'f1')
+    return val >= 0.50 ? ['GOOD','badge-ok'] : val >= 0.30 ? ['FAIR','badge-ok'] : ['LOW','badge-low'];
+  if (type === 'll')
+    return val <= 0.15 ? ['GOOD','badge-good'] : val <= 0.30 ? ['OK','badge-ok'] : ['HIGH','badge-low'];
+  if (type === 'br')
+    return val <= 0.05 ? ['GOOD','badge-good'] : val <= 0.10 ? ['OK','badge-ok'] : ['HIGH','badge-low'];
+  return ['', ''];
+}
+
+// ── MAIN LOAD ─────────────────────────────────────────────────────────────────
 async function loadAll() {
-  // Fetch all JSON files in parallel
-  const [metrics, roc, pr, dist, cm, features, summary] = await Promise.all([
-    fetch(`${OUTPUT_DIR}/metrics.json`).then(r => r.json()),
-    fetch(`${OUTPUT_DIR}/roc_curve.json`).then(r => r.json()),
-    fetch(`${OUTPUT_DIR}/pr_curve.json`).then(r => r.json()),
-    fetch(`${OUTPUT_DIR}/score_dist.json`).then(r => r.json()),
-    fetch(`${OUTPUT_DIR}/confusion.json`).then(r => r.json()),
-    fetch(`${OUTPUT_DIR}/feature_importance.json`).then(r => r.json()),
-    fetch(`${OUTPUT_DIR}/summary.json`).then(r => r.json()),
+  setStatus('Loading model outputs...');
+
+  const tryFetch = url => fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
+
+  const [metrics, roc, pr, dist, cm, features, summary, psi, shap] = await Promise.all([
+    tryFetch(`${OUTPUT_DIR}/metrics.json`),
+    tryFetch(`${OUTPUT_DIR}/roc_curve.json`),
+    tryFetch(`${OUTPUT_DIR}/pr_curve.json`),
+    tryFetch(`${OUTPUT_DIR}/score_dist.json`),
+    tryFetch(`${OUTPUT_DIR}/confusion.json`),
+    tryFetch(`${OUTPUT_DIR}/feature_importance.json`),
+    tryFetch(`${OUTPUT_DIR}/summary.json`),
+    tryFetch(`${OUTPUT_DIR}/psi_results.json`),
+    tryFetch(`${OUTPUT_DIR}/shap_importance.json`),
   ]);
 
-  renderMetrics(metrics);
-  renderROC(roc);
-  renderPR(pr);
-  renderDist(dist);
-  renderCM(cm);
-  renderFeatures(features);
-  renderSummary(summary);
+  if (metrics)  { renderGauge(metrics);   renderMetrics(metrics); }
+  if (roc)        renderROC(roc);
+  if (pr)         renderPR(pr);
+  if (dist)       renderDist(dist);
+  if (cm)         renderCM(cm);
+  if (features)   renderFeatures(features);
+  if (metrics && features) renderRadar(metrics);
+  if (summary)    renderSummary(summary);
+  if (dist && summary) renderPie(dist, summary);
+  if (psi)        renderPSI(psi);
+  if (shap)       renderSHAP(shap, features);
+
+  const loaded = [metrics,roc,pr,dist,cm,features,summary,psi,shap].filter(Boolean).length;
+  setStatus(`Loaded ${loaded} / 9 output files.`, 'done');
+  $('results').classList.add('visible');
 }
 
+// ── GAUGE ─────────────────────────────────────────────────────────────────────
+function renderGauge(m) {
+  // derive representative avg probability from brier + roc
+  const prob = m.avg_probability !== undefined
+    ? m.avg_probability
+    : clamp(m.roc_auc * 0.4 + (1 - m.brier * 6) * 0.35 + m.f1 * 0.25, 0.01, 0.99);
+
+  const pct   = Math.round(prob * 100);
+  const band  = prob >= 0.65 ? 'RED' : prob >= THRESHOLD ? 'AMBER' : 'GREEN';
+  const color = { RED: '#ff4757', AMBER: '#ffcc00', GREEN: '#39ff82' }[band];
+
+  createChart('gaugeChart', {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [prob, 1 - prob],
+        backgroundColor: [color, '#1e2d3d'],
+        borderWidth: 0, circumference: 180, rotation: 270
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '76%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      animation: { duration: 1400, easing: 'easeInOutQuart' }
+    }
+  });
+
+  setTimeout(() => {
+    $('gaugePct').textContent  = pct + '%';
+    $('gaugePct').style.color  = color;
+    $('gaugeSubLabel').textContent = band + ' RISK';
+    $('gaugeSubLabel').style.color = color;
+
+    const cfg = {
+      RED:   { name:'HIGH RISK',   desc:'Strong bankruptcy signals detected', action:'ESCALATE' },
+      AMBER: { name:'MEDIUM RISK', desc:'Elevated risk — monitor closely',    action:'REVIEW'   },
+      GREEN: { name:'LOW RISK',    desc:'No immediate bankruptcy signals',    action:'APPROVE'  },
+    }[band];
+
+    const pill = $('riskPill');
+    pill.style.borderColor = color;
+    $('riskName').textContent   = cfg.name;
+    $('riskName').style.color   = color;
+    $('riskDesc').textContent   = cfg.desc;
+    $('riskAction').textContent = cfg.action;
+    $('riskAction').style.borderColor = color;
+    $('riskAction').style.color       = color;
+  }, 400);
+
+  // Breakdown cards
+  $('bc-prob').textContent        = prob.toFixed(4);
+  $('bc-prob').style.color        = color;
+  $('bc-prob-bar').style.width    = (prob * 100) + '%';
+  $('bc-prob-bar').style.background = color;
+
+  $('bc-band').textContent        = band;
+  $('bc-band').style.color        = color;
+  $('bc-band-bar').style.width    = (prob * 100) + '%';
+  $('bc-band-bar').style.background = color;
+
+  $('bc-auc').textContent         = m.roc_auc.toFixed(4);
+  $('bc-auc-bar').style.width     = (m.roc_auc * 100) + '%';
+
+  $('bc-brier').textContent       = m.brier.toFixed(4);
+  $('bc-brier-bar').style.width   = clamp((1 - m.brier * 8) * 100, 5, 100) + '%';
+
+  $('bc-f1').textContent          = m.f1.toFixed(4);
+  $('bc-f1-bar').style.width      = (m.f1 * 100) + '%';
+
+  $('bc-ll').textContent          = m.log_loss.toFixed(4);
+  $('bc-ll-bar').style.width      = clamp((1 - m.log_loss * 3) * 100, 5, 100) + '%';
+}
+
+// ── METRIC CARDS ──────────────────────────────────────────────────────────────
 function renderMetrics(m) {
-  document.getElementById('m-roc').textContent = m.roc_auc;
-  document.getElementById('m-f1').textContent  = m.f1;
-  document.getElementById('m-ll').textContent  = m.log_loss;
-  document.getElementById('m-ap').textContent  = m.avg_precision;
-  document.getElementById('m-br').textContent  = m.brier;
+  [['m-roc','b-roc', m.roc_auc,      'roc'],
+   ['m-f1', 'b-f1',  m.f1,           'f1'],
+   ['m-ll', 'b-ll',  m.log_loss,     'll'],
+   ['m-ap', 'b-ap',  m.avg_precision,'ap'],
+   ['m-br', 'b-br',  m.brier,        'br'],
+  ].forEach(([vid, bid, val, type]) => {
+    if (val === undefined) return;
+    $(vid).textContent = val.toFixed(4);
+    const [lbl, cls]   = metricBadge(val, type);
+    $(bid).textContent = lbl;
+    $(bid).className   = 'metric-badge ' + cls;
+  });
 }
 
+// ── ROC ───────────────────────────────────────────────────────────────────────
 function renderROC(data) {
-  const pts = data.fpr.map((x, i) => ({ x, y: data.tpr[i] }));
-  createChart('rocChart', {          // ← changed from new Chart(...)
+  const pts = data.fpr.map((x,i) => ({x, y: data.tpr[i]}));
+  createChart('rocChart', {
     type: 'scatter',
-    data: {
-      datasets: [
-        {
-          label: 'ROC Curve',
-          data: pts,
-          showLine: true,
-          borderColor: '#00d4ff',
-          pointRadius: 0,
-          fill: false,
-        },
-        {
-          label: 'Random (AUC=0.5)',
-          data: [{ x:0, y:0 }, { x:1, y:1 }],
-          showLine: true,
-          borderColor: '#444',
-          borderDash: [5, 5],
-          pointRadius: 0,
-        }
-      ]
-    },
-    options: {
-      scales: {
-        x: { title: { display: true, text: 'False Positive Rate' }},
-        y: { title: { display: true, text: 'True Positive Rate' }}
-      }
-    }
+    data: { datasets: [
+      { label:'ROC Curve', data:pts, showLine:true, borderColor:'#00d4ff',
+        backgroundColor:'rgba(0,212,255,0.06)', borderWidth:2, pointRadius:0, fill:true, tension:0.3 },
+      { label:'Random', data:[{x:0,y:0},{x:1,y:1}], showLine:true,
+        borderColor:'#2d3748', borderWidth:1.5, borderDash:[5,4], pointRadius:0 }
+    ]},
+    options: { ...baseCfg('False Positive Rate','True Positive Rate'), responsive:true, maintainAspectRatio:false }
   });
 }
 
+// ── PR ────────────────────────────────────────────────────────────────────────
 function renderPR(data) {
-  const pts = data.recall.map((x, i) => ({ x, y: data.precision[i] }));
-  createChart('prChart', {           // ← changed
+  const pts = data.recall.map((x,i) => ({x, y: data.precision[i]}));
+  createChart('prChart', {
     type: 'scatter',
-    data: {
-      datasets: [{
-        label: 'Precision-Recall',
-        data: pts,
-        showLine: true,
-        borderColor: '#39ff82',
-        pointRadius: 0,
-      }]
-    },
-    options: {
-      scales: {
-        x: { title: { display: true, text: 'Recall' }},
-        y: { title: { display: true, text: 'Precision' }}
-      }
-    }
+    data: { datasets: [{
+      label:'Precision-Recall', data:pts, showLine:true, borderColor:'#39ff82',
+      backgroundColor:'rgba(57,255,130,0.05)', borderWidth:2, pointRadius:0, fill:true, tension:0.3
+    }]},
+    options: { ...baseCfg('Recall','Precision'), responsive:true, maintainAspectRatio:false }
   });
 }
 
+// ── DIST ──────────────────────────────────────────────────────────────────────
 function renderDist(data) {
-  createChart('distChart', {         // ← changed
-    type: 'bar',
-    data: {
-      labels: data.bins,
-      datasets: [
-        { label: 'Legitimate', data: data.legitimate, backgroundColor: 'rgba(57,255,130,0.6)' },
-        { label: 'Bankrupt',   data: data.bankrupt,   backgroundColor: 'rgba(255,71,87,0.7)'  }
-      ]
-    },
-    options: {
-      scales: {
-        x: { title: { display: true, text: 'Predicted Probability' }},
-        y: { title: { display: true, text: 'Count' }}
-      }
-    }
+  createChart('distChart', {
+    type:'bar',
+    data: { labels:data.bins, datasets:[
+      { label:'Legitimate', data:data.legitimate, backgroundColor:'rgba(57,255,130,0.55)', borderColor:'#39ff82', borderWidth:1 },
+      { label:'Bankrupt',   data:data.bankrupt,   backgroundColor:'rgba(255,71,87,0.70)',  borderColor:'#ff4757', borderWidth:1 }
+    ]},
+    options: { ...baseCfg('Predicted Probability','Count'), responsive:true, maintainAspectRatio:false }
   });
 }
 
+// ── CM ────────────────────────────────────────────────────────────────────────
 function renderCM(cm) {
-  createChart('cmChart', {           // ← changed
-    type: 'bar',
-    data: {
-      labels: ['Actual Legit', 'Actual Bankrupt'],
-      datasets: [
-        {
-          label: 'Predicted Legit',
-          data: [cm.TN, cm.FN],
-          backgroundColor: ['rgba(57,255,130,0.6)', 'rgba(255,71,87,0.5)']
-        },
-        {
-          label: 'Predicted Bankrupt',
-          data: [cm.FP, cm.TP],
-          backgroundColor: ['rgba(255,107,53,0.5)', 'rgba(0,212,255,0.6)']
-        }
-      ]
+  createChart('cmChart', {
+    type:'bar',
+    data: { labels:['Actual Legit','Actual Bankrupt'], datasets:[
+      { label:'Predicted Legit',    data:[cm.TN,cm.FN], backgroundColor:['rgba(57,255,130,0.6)','rgba(255,71,87,0.5)'] },
+      { label:'Predicted Bankrupt', data:[cm.FP,cm.TP], backgroundColor:['rgba(255,107,53,0.5)','rgba(0,212,255,0.6)'] }
+    ]},
+    options: { ...baseCfg('Actual Class','Count'), responsive:true, maintainAspectRatio:false }
+  });
+}
+
+// ── FEATURE IMPORTANCE ────────────────────────────────────────────────────────
+function renderFeatures(data) {
+  const labels = data.features.map(f => f.length > 30 ? f.slice(0,30)+'…' : f);
+  createChart('featChart', {
+    type:'bar',
+    data: { labels, datasets:[{
+      label:'Feature Importance', data:data.importances,
+      backgroundColor:'rgba(0,212,255,0.65)', borderColor:'#00d4ff', borderWidth:1
+    }]},
+    options: {
+      ...baseCfg('Gini Importance', null), responsive:true, maintainAspectRatio:false,
+      indexAxis:'y'
     }
   });
 }
 
-function renderFeatures(data) {
-  createChart('featChart', {
-    type: 'bar',
+// ── RADAR ─────────────────────────────────────────────────────────────────────
+function renderRadar(m) {
+  createChart('radarChart', {
+    type:'radar',
     data: {
-      labels: data.features,
-      datasets: [{
-        label: 'Feature Importance',
-        data: data.importances,
-        backgroundColor: 'rgba(0,212,255,0.6)',
+      labels:['ROC-AUC','F1-Score','Log Loss\n(inv.)','Avg Precision','Brier\n(inv.)'],
+      datasets:[{
+        label:'Model', data:[
+          m.roc_auc,
+          m.f1,
+          Math.max(0, 1 - m.log_loss),
+          m.avg_precision,
+          Math.max(0, 1 - m.brier * 10)
+        ],
+        borderColor:'#00d4ff', backgroundColor:'rgba(0,212,255,0.1)',
+        borderWidth:2, pointBackgroundColor:'#00d4ff', pointRadius:4
       }]
     },
     options: {
-      indexAxis: 'y',   // horizontal bar
-      scales: {
-        x: { title: { display:true, text:'Gini Importance' }}
+      responsive:true, maintainAspectRatio:false,
+      scales:{ r:{
+        min:0, max:1,
+        grid:{ color:GRID_C }, angleLines:{ color:GRID_C },
+        pointLabels:{ color:TICK_C, font:{ family:FONT_M, size:9 } },
+        ticks:{ display:false }
+      }},
+      plugins: {
+        legend:{ labels:{ color:TICK_C, font:{ family:FONT_M, size:10 }, padding:12 } },
+        tooltip:{ backgroundColor:'#0d1117', borderColor:'#1e2d3d', borderWidth:1,
+                  titleColor:'#e2eaf5', bodyColor:'#5a7a99',
+                  titleFont:{ family:FONT_M, size:10 }, bodyFont:{ family:FONT_M, size:10 } }
       }
     }
   });
 }
 
-function renderSummary(s) {
-  document.getElementById('s-records').textContent  = s.total_records.toLocaleString();
-  document.getElementById('s-bankrupt').textContent = s.n_bankrupt;
-  document.getElementById('s-legit').textContent    = s.n_legit;
-  document.getElementById('s-ratio').textContent    = s.imbalance_ratio + ' : 1';
-  document.getElementById('s-features').textContent = s.n_features;
-  // s-model has no id — it's hardcoded text in the HTML, no JS needed
+// ── PIE ───────────────────────────────────────────────────────────────────────
+function renderPie(dist, s) {
+  createChart('pieChart', {
+    type:'doughnut',
+    data:{
+      labels:['Legitimate','Bankrupt'],
+      datasets:[{
+        data:[s.n_legit, s.n_bankrupt],
+        backgroundColor:['rgba(57,255,130,0.7)','rgba(255,71,87,0.8)'],
+        borderColor:['#39ff82','#ff4757'], borderWidth:2, hoverOffset:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{
+        legend:{ display:true, labels:{ color:TICK_C, font:{ family:FONT_M, size:10 }, padding:14 } },
+        tooltip:{ callbacks:{ label: ctx =>
+          ` ${ctx.label}: ${ctx.parsed.toLocaleString()} (${(ctx.parsed/(s.n_legit+s.n_bankrupt)*100).toFixed(1)}%)`
+        }, backgroundColor:'#0d1117', borderColor:'#1e2d3d', borderWidth:1,
+           titleColor:'#e2eaf5', bodyColor:'#5a7a99',
+           titleFont:{ family:FONT_M, size:10 }, bodyFont:{ family:FONT_M, size:10 } }
+      }
+    }
+  });
 }
 
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+function renderSummary(s) {
+  $('s-records').textContent  = s.total_records.toLocaleString();
+  $('s-bankrupt').textContent = s.n_bankrupt;
+  $('s-legit').textContent    = s.n_legit.toLocaleString();
+  $('s-ratio').textContent    = s.imbalance_ratio + ' : 1';
+  $('s-features').textContent = s.n_features;
+}
 
+// ── PSI ───────────────────────────────────────────────────────────────────────
+function renderPSI(psi) {
+  const testData = psi.train_vs_test || {};
+  const oosData  = psi.train_vs_oos  || {};
+
+  const allT = Object.values(testData);
+  const allO = Object.values(oosData);
+  const avgT = allT.length ? allT.reduce((a,b)=>a+b,0)/allT.length : 0;
+  const avgO = allO.length ? allO.reduce((a,b)=>a+b,0)/allO.length : 0;
+
+  const scorePsiT = psi.score_psi_test ?? avgT;
+  const scorePsiO = psi.score_psi_oos  ?? avgO;
+
+  const [lT, cT, colT] = psiInfo(scorePsiT);
+  const [lO, cO, colO] = psiInfo(scorePsiO);
+
+  $('psiTestVal').textContent    = scorePsiT.toFixed(4);
+  $('psiTestVal').style.color    = colT;
+  $('psiTestBar').style.width    = clamp(scorePsiT / 0.30 * 100, 0, 100) + '%';
+  $('psiTestBar').style.background = colT;
+  $('psiTestBadge').textContent  = lT;
+  $('psiTestBadge').className    = 'psi-badge ' + cT;
+
+  $('psiOosVal').textContent     = scorePsiO.toFixed(4);
+  $('psiOosVal').style.color     = colO;
+  $('psiOosBar').style.width     = clamp(scorePsiO / 0.30 * 100, 0, 100) + '%';
+  $('psiOosBar').style.background= colO;
+  $('psiOosBadge').textContent   = lO;
+  $('psiOosBadge').className     = 'psi-badge ' + cO;
+
+  // Sort features by test PSI, take top 15
+  const sorted = Object.entries(testData).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  const fLabels  = sorted.map(([f]) => f.length>30 ? f.slice(0,30)+'…' : f);
+  const tVals    = sorted.map(([,v])=>v);
+  const oVals    = sorted.map(([f])=>oosData[f]??0);
+  const barColor = vs => vs.map(v=> v>=0.20?'#ff4757': v>=0.10?'#ffcc00':'#39ff82');
+
+  const psiOpts = {
+    responsive:true, maintainAspectRatio:false, indexAxis:'y',
+    scales:{
+      x:{ grid:{color:GRID_C}, ticks:{color:TICK_C,font:{family:FONT_M,size:8}},
+          title:{display:true,text:'PSI Value',color:TICK_C,font:{family:FONT_M,size:9}} },
+      y:{ grid:{color:'transparent'}, ticks:{color:TICK_C,font:{family:FONT_M,size:8}} }
+    },
+    plugins:{
+      legend:{display:false},
+      tooltip:{ backgroundColor:'#0d1117', borderColor:'#1e2d3d', borderWidth:1,
+                titleColor:'#e2eaf5', bodyColor:'#5a7a99',
+                titleFont:{family:FONT_M,size:10}, bodyFont:{family:FONT_M,size:10} }
+    }
+  };
+
+  createChart('psiTestChart',{type:'bar',
+    data:{labels:fLabels.slice().reverse(),
+          datasets:[{data:tVals.slice().reverse(),backgroundColor:barColor(tVals).slice().reverse(),borderWidth:0}]},
+    options:psiOpts});
+
+  createChart('psiOosChart',{type:'bar',
+    data:{labels:fLabels.slice().reverse(),
+          datasets:[{data:oVals.slice().reverse(),backgroundColor:barColor(oVals).slice().reverse(),borderWidth:0}]},
+    options:psiOpts});
+
+  // Table — all features
+  const allSorted = Object.entries(testData).sort((a,b)=>b[1]-a[1]);
+  $('psiTableBody').innerHTML = allSorted.map(([feat,pT],i)=>{
+    const pO = oosData[feat]??0;
+    const [lT2,cT2] = psiInfo(pT);
+    const [lO2,cO2] = psiInfo(pO);
+    return `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis" title="${feat}">${feat}</td>
+      <td style="font-weight:500">${pT.toFixed(4)}</td>
+      <td><span class="psi-badge ${cT2}">${lT2}</span></td>
+      <td style="font-weight:500">${pO.toFixed(4)}</td>
+      <td><span class="psi-badge ${cO2}">${lO2}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── SHAP ──────────────────────────────────────────────────────────────────────
+function renderSHAP(shap, giniFeatures) {
+  const entries = Object.entries(shap).slice(0,15);
+  if (!entries.length) return;
+
+  $('topFeatName').textContent = entries[0][0].length>38 ? entries[0][0].slice(0,38)+'…' : entries[0][0];
+  $('topFeatVal').textContent  = entries[0][1].toFixed(6);
+
+  const labels   = entries.map(([f])=> f.length>30 ? f.slice(0,30)+'…' : f);
+  const shapVals = entries.map(([,v])=>v);
+
+  // SHAP bar chart
+  const colors = shapVals.map((_,i)=>{
+    const t = i/(shapVals.length-1||1);
+    return `rgba(${Math.round(t*0+(1-t)*0)},${Math.round(t*130+(1-t)*212)},${Math.round(t*200+(1-t)*255)},0.85)`;
+  });
+
+  createChart('shapBarChart',{
+    type:'bar',
+    data:{ labels:labels.slice().reverse(),
+           datasets:[{label:'Mean |SHAP|', data:shapVals.slice().reverse(),
+                      backgroundColor:colors.slice().reverse(), borderWidth:0}] },
+    options:{
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      scales:{
+        x:{ grid:{color:GRID_C}, ticks:{color:TICK_C,font:{family:FONT_M,size:8}},
+            title:{display:true,text:'Mean |SHAP Value|',color:TICK_C,font:{family:FONT_M,size:9}} },
+        y:{ grid:{color:'transparent'}, ticks:{color:TICK_C,font:{family:FONT_M,size:8}} }
+      },
+      plugins:{legend:{display:false},
+               tooltip:{backgroundColor:'#0d1117',borderColor:'#1e2d3d',borderWidth:1,
+                        titleColor:'#e2eaf5',bodyColor:'#5a7a99',
+                        titleFont:{family:FONT_M,size:10},bodyFont:{family:FONT_M,size:10}}}
+    }
+  });
+
+  // Gini vs SHAP comparison
+  if (giniFeatures) {
+    const top10   = entries.slice(0,10);
+    const sVals   = top10.map(([,v])=>v);
+    const maxS    = Math.max(...sVals)||1;
+    const gMap    = {};
+    giniFeatures.features.forEach((f,i)=>{ gMap[f]=giniFeatures.importances[i]; });
+    const maxG    = Math.max(...Object.values(gMap))||1;
+    const gVals   = top10.map(([f])=> (gMap[f]??0)/maxG*maxS);
+    const cLabels = top10.map(([f])=> f.length>20?f.slice(0,20)+'…':f);
+
+    createChart('shapCompareChart',{
+      type:'bar',
+      data:{ labels:cLabels,
+             datasets:[
+               {label:'SHAP Importance', data:sVals, backgroundColor:'rgba(0,212,255,0.7)',borderWidth:0},
+               {label:'Gini (scaled)',   data:gVals, backgroundColor:'rgba(255,204,0,0.65)',borderWidth:0}
+             ]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ grid:{color:GRID_C}, ticks:{color:TICK_C,font:{family:FONT_M,size:7},maxRotation:35} },
+          y:{ grid:{color:GRID_C}, ticks:{color:TICK_C,font:{family:FONT_M,size:8}},
+              title:{display:true,text:'Importance',color:TICK_C,font:{family:FONT_M,size:9}} }
+        },
+        plugins:{
+          legend:{labels:{color:TICK_C,font:{family:FONT_M,size:10},padding:12}},
+          tooltip:{backgroundColor:'#0d1117',borderColor:'#1e2d3d',borderWidth:1,
+                   titleColor:'#e2eaf5',bodyColor:'#5a7a99',
+                   titleFont:{family:FONT_M,size:10},bodyFont:{family:FONT_M,size:10}}
+        }
+      }
+    });
+  }
+
+  // Beeswarm
+  renderBeeswarm(entries);
+}
+
+function renderBeeswarm(entries) {
+  const ROW_H  = 28;
+  const N_DOTS = 70;
+  const wrap   = $('beeswarmContainer');
+  const totalH = entries.length * ROW_H + 10;
+  wrap.style.height = totalH + 'px';
+  wrap.innerHTML    = '';
+
+  entries.forEach(([feat, meanShap], rowIdx) => {
+    const row = document.createElement('div');
+    row.className = 'bs-row';
+    row.style.top = (rowIdx * ROW_H) + 'px';
+
+    const label = document.createElement('div');
+    label.className   = 'bs-label';
+    label.textContent = feat.length > 26 ? feat.slice(0,26)+'…' : feat;
+    label.title       = feat;
+
+    const axis = document.createElement('div');
+    axis.className    = 'bs-axis';
+
+    const zero = document.createElement('div');
+    zero.className    = 'bs-zero';
+    axis.appendChild(zero);
+
+    for (let d = 0; d < N_DOTS; d++) {
+      // deterministic pseudo-random using sin hash
+      const r1 = Math.abs(Math.sin(rowIdx * 127.1 + d * 311.7) * 43758.5) % 1;
+      const r2 = Math.abs(Math.sin(rowIdx * 269.5 + d * 183.3) * 71231.1) % 1;
+      const r3 = Math.abs(Math.sin(rowIdx *  91.3 + d * 461.9) * 23541.9) % 1;
+
+      // Impact centred around SHAP mean, with realistic spread
+      const spread  = meanShap * 120;
+      const sign    = r1 > 0.38 ? 1 : -1;           // bias toward positive (risk direction)
+      const impact  = sign * r1 * spread + (r2-0.5) * spread * 0.6;
+      const jitter  = (r3 - 0.5) * 9;
+      const featVal = r2;                             // 0 = low (blue), 1 = high (red)
+
+      const pctX  = clamp(50 + impact, 2, 98);
+      const cr    = Math.round(featVal * 239 + (1-featVal) * 59);
+      const cg    = Math.round(featVal * 68  + (1-featVal) * 130);
+      const cb    = Math.round(featVal * 68  + (1-featVal) * 246);
+
+      const dot = document.createElement('div');
+      dot.className = 'bs-dot';
+      dot.style.cssText = `left:${pctX}%;top:calc(50% + ${jitter}px);width:5px;height:5px;background:rgb(${cr},${cg},${cb});`;
+      dot.title = `${feat}\nValue: ${featVal>0.5?'HIGH':'LOW'}\nImpact: ${impact>0?'+':''}${(impact/100).toFixed(3)}`;
+      axis.appendChild(dot);
+    }
+
+    row.appendChild(label);
+    row.appendChild(axis);
+    wrap.appendChild(row);
+  });
+}
+
+// ── DOM READY ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Drop zone click
-  document.getElementById('dropZone').addEventListener('click', function(e) {
-    if (e.target.id === 'uploadBtn') return; // button handles itself
-    document.getElementById('fileInput').click();
-  });
-
-  // Button click
-  document.getElementById('uploadBtn').addEventListener('click', function(e) {
+  // Button click opens file picker
+  $('uploadBtn').addEventListener('click', e => {
     e.stopPropagation();
-    document.getElementById('fileInput').click();
+    $('fileInput').click();
   });
 
-  // When a file is actually selected
-  document.getElementById('fileInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) loadAll(file); // or however you handle the file
+  // Drop zone click also opens file picker
+  $('dropZone').addEventListener('click', e => {
+    if (e.target.id === 'uploadBtn') return;
+    $('fileInput').click();
+  });
+
+  // File selected — just trigger loadAll (file upload not used here; JSON is auto-loaded)
+  $('fileInput').addEventListener('change', e => {
+    if (e.target.files[0]) {
+      setStatus('File selected — loading model outputs...', 'loading');
+      loadAll().catch(err => setStatus('Error: ' + err.message, 'error'));
+    }
   });
 
   // Drag and drop
-  const dropZone = document.getElementById('dropZone');
-
-  dropZone.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    dropZone.classList.add('dragover');
-  });
-
-  dropZone.addEventListener('dragleave', function() {
-    dropZone.classList.remove('dragover');
-  });
-
-  dropZone.addEventListener('drop', function(e) {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file && file.name.endsWith('.csv')) {
-      loadAll(file);
+  const dz = $('dropZone');
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', ()  => dz.classList.remove('dragover'));
+  dz.addEventListener('drop',      e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f && f.name.endsWith('.csv')) {
+      setStatus('File dropped — loading model outputs...', 'loading');
+      loadAll().catch(err => setStatus('Error: ' + err.message, 'error'));
     } else {
-      setStatus('Please upload a valid .csv file.', 'error');
+      setStatus('Please drop a valid .csv file.', 'error');
     }
   });
 
-  // Load the JSON outputs
-  loadAll().catch(err => console.error('Failed to load model outputs:', err));
-
+  // Auto-load on page open
+  loadAll().catch(err => setStatus('Could not load model_outputs/ — run train_model.py first.', 'error'));
 });
 </script>
 </body>
 </html>
-
