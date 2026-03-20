@@ -1,9 +1,0 @@
-{
-  "roc_auc": 0.9163,
-  "f1": 0.3586,
-  "log_loss": 0.1244,
-  "avg_precision": 0.3888,
-  "brier": 0.0356,
-  "threshold": 0.35,
-  "split": "test"
-}
